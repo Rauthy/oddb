@@ -1,0 +1,455 @@
+/**
+ * JavaCC template file created by SF JavaCC plugin 1.5.28+ wizard for JavaCC 1.5.0+
+ */
+options{
+LOOKAHEAD = 3;
+STATIC = false ;
+DEBUG_PARSER = true;
+
+ }
+PARSER_BEGIN(parse)
+package drz.oddb.parse;
+import java.util.*;
+import drz.oddb.parseStmt.*;
+
+public class parse {
+
+public static final int OPT_CREATE_ORIGINCLASS    = 1;
+public static final int OPT_CREATE_SELECTDEPUTY   = 2;
+public static final int OPT_DROP                  = 3;
+public static final int OPT_INSERT                = 4;
+public static final int OPT_DELETE                = 5;
+public static final int OPT_SELECT_DERECTSELECT   = 6;
+public static final int OPT_SELECT_INDERECTSELECT = 7;
+public static final int OPT_CREATE_UPDATE         = 8;
+
+public static CreateStmt createstmt;
+public static CreateSelStmt createselstmt;
+public static DropStmt dropstmt;
+public static InsertStmt insertstmt;
+public static UpdateStmt updatestmt;
+public static SelectStmt selectstmt;
+public static DeleteStmt deletestmt;
+static Queue<String > st= new LinkedList<String>(); 
+public static void main(String args[]) throws ParseException {
+    //refresh();
+    for(int i=0;i<10;i++) {
+      System.out.println(1);
+    parse parser = new parse(System.in);
+    RawStmt rawstmt=parser.Run();
+    System.out.println(rawstmt.toString());
+     System.out.println(rawstmt.NodeTag);
+  /*  CreateSelStmt css = (CreateSelStmt)rawstmt;
+    System.out.println(css.classname);
+    System.out.println(css.originname);
+    System.out.println(css.relattrs.get(0).attrtype);
+    System.out.println(css.relattrs.get(0).attrname);
+    System.out.println(css.deputyattrs.get(0).deputyname);
+    System.out.println(css.deputyattrs.get(0).switchrule);
+    System.out.println(css.deputyattrs.get(1).deputyname);
+    System.out.println(css.deputyattrs.get(1).switchrule);*/
+   /* CreateStmt ccs=(CreateStmt)rawstmt;
+    System.out.println(ccs.classname);
+    System.out.println(ccs.cols.get(0).attrname);
+    System.out.println(ccs.cols.get(0).attrtype);
+    System.out.println(ccs.cols.get(1).attrname);
+    System.out.println(ccs.cols.get(1).attrtype);*/
+  /*  DropStmt ds =(DropStmt)rawstmt;
+    System.out.println(ds.NodeTag);
+    System.out.println(ds.classname); */
+   /*  InsertStmt iis = (InsertStmt)rawstmt;
+     System.out.println(iis.NodeTag);
+     System.out.println(iis.classname);
+     printlist(iis.attrnames);
+     printlist(iis.attrvalues); */
+     /*UpdateStmt uus = (UpdateStmt)rawstmt;
+     System.out.println(uus.NodeTag);
+     System.out.println(uus.classname);
+     printlist(uus.attrs);
+     printlist(uus.values);
+    System.out.println(uus.whereclause);*/
+        }
+     }
+
+     public static void printlist(ArrayList<String> ls) {
+       for(int i=0;i<ls.size();i++)
+       		System.out.print(ls.get(i)+"  ");
+     } 
+}
+
+PARSER_END(parse)
+
+SKIP :
+{
+  " "
+| "/t"
+| "/n"
+| "/r"
+}
+
+TOKEN:
+{
+<SEMICOLON:";">
+| <UPDATE:"UPDATE">
+|<CREATE:"CREATE">
+|<DROP:"DROP">
+|<CLASS:"CLASS">
+|<INSERT:"INSERT">
+|<INTO:"INTO">
+|<VALUES:"VALUES">
+|<LEFT_BRACKET:"(">
+|<COMMA:",">
+|<RIGHT_BRACKET:")">
+|<DELETE:"DELETE">
+|<FROM:"FROM">
+|<WHERE:"WHERE">
+|<SELECT:"SELECT">
+|<SELECTDEPUTY:"SELECTDEPUTY">
+|<ID: ["a"-"z"](["a"-"z","A"-"Z","0"-"9"])* >
+|<EXPRESSION: ["{","[","("](["a"-"z","A"-"Z","0"-"9","{","}","[","]","(",")","+","-","*","/"])* >
+|<EQUAL:"=">
+|<INT: "0"|(["1"-"9"](["0"-"9"])*) >
+|<STRING: "\""(["a"-"z","A"-"Z","1"-"9"])*"\"" >
+|<CROSS:"->">
+|<DOT:".">
+|<AS:"AS">
+| <BOOLEXP:(["a"-"z","A"-"Z","0"-"9","+","(",")","-","*","/",">","<","=","!",".","\""])* >
+|<PLUS:"+">
+|<SET:"SET">
+}
+
+
+RawStmt Run():
+{
+  RawStmt rs;
+}
+{
+  rs=sql()
+  {
+    System.out.println(1);
+    return rs;
+  }
+}
+
+RawStmt sql():
+{
+  RawStmt rs;
+  CreateStmt cs;
+  DropStmt ds;
+  InsertStmt is;
+  UpdateStmt us;
+  SelectStmt ss;
+  DeleteStmt des;
+}
+{
+  cs = create() { return cs; }
+  | ds=drop() { return ds; }
+  | is=insert() { return is; }
+  | des=delete() { return des; }
+}
+
+CreateStmt create():
+{
+    String create_s;
+    createstmt = new CreateStmt();
+    createselstmt = new CreateSelStmt();
+	int count;
+}
+{
+  (
+    <CREATE> originclass() <SEMICOLON>
+  {
+    createstmt.NodeTag="CREATEORIGIN";
+    return createstmt;
+  }
+  )
+| 
+    (<CREATE> selectdeputy1() <SEMICOLON>)
+    {
+      createselstmt.NodeTag="CREATEDEPUTY";
+      return createselstmt;
+    }
+}
+
+void relattrs():
+{
+  String cln;
+  RelAttr rl=new RelAttr();
+  String attr_s;
+  String attrtype_s;
+}
+{
+  
+  cln = classname() { createselstmt.classname=cln; }
+    <LEFT_BRACKET>
+   attr_s = attr() { rl=new RelAttr(); rl.attrname=attr_s; }
+   attrtype_s = attrtype() { rl.attrtype=attrtype_s; createselstmt.relattrs.add(rl); }
+   (<COMMA> attr_s = attr() { rl=new RelAttr(); rl.attrname=attr_s; } attrtype_s = attrtype() { rl.attrtype=attrtype_s; createselstmt.relattrs.add(rl); })*
+   <RIGHT_BRACKET> 
+   { return; }
+}
+
+void originclass():
+{
+  String cln;
+  RelAttr rl=new RelAttr();
+  String attr_s;
+  String attrtype_s;
+}
+{
+  <CLASS>
+  cln = classname() { createstmt.classname=cln; }
+  <LEFT_BRACKET>
+   attr_s = attr() { rl=new RelAttr(); rl.attrname=attr_s; }
+   attrtype_s = attrtype() { rl.attrtype=attrtype_s; createstmt.cols.add(rl); }
+   (<COMMA> attr_s = attr() { rl=new RelAttr(); rl.attrname=attr_s; } attrtype_s = attrtype() { rl.attrtype=attrtype_s; createstmt.cols.add(rl); })*
+   <RIGHT_BRACKET>
+   { return; }
+}
+
+DropStmt drop():
+{
+  dropstmt = new DropStmt();
+  String cln;
+}
+{
+   <DROP> <CLASS> cln = classname() <SEMICOLON> {dropstmt.NodeTag="DROP"; dropstmt.classname=cln;return dropstmt; }
+}
+
+UpdateStmt update3():
+{
+  updatestmt = new UpdateStmt();
+  String cln;
+}
+{
+   <UPDATE> <CLASS> cln = classname() <SEMICOLON> {updatestmt.NodeTag="UPDATE"; updatestmt.classname=cln;return updatestmt; }
+}
+
+InsertStmt insert():
+{
+  insertstmt = new InsertStmt();
+  String cln;
+  String vl;
+  String vn;
+  int i;
+}
+{
+     <INSERT > <INTO>
+     cln = classname() { insertstmt.NodeTag="INSERT";insertstmt.classname=cln; }
+     insertjudge() { return insertstmt; } 
+ }
+
+ void insertjudge():
+ {
+   
+ }
+ {
+   ( insert2()  <SEMICOLON>)
+ | ( insert1() <SEMICOLON>)
+}
+     
+
+int insert1():
+ {
+    String vl;
+    String vn;
+ }
+ {
+   <VALUES> <LEFT_BRACKET> vl = value() { insertstmt.attrvalues.add(vl); }
+   (< COMMA > vl=value() {  insertstmt.attrvalues.add(vl); } )*
+   <RIGHT_BRACKET> { return 1; }
+ }
+
+ int insert2():
+ {
+    String vl;
+    String vn;
+ }
+ {
+    < LEFT_BRACKET >  vn=attr() { insertstmt.attrnames.add(vn); }
+    (<COMMA> vn = attr() {insertstmt.attrnames.add(vn); })*
+    <RIGHT_BRACKET> <VALUES>
+     <LEFT_BRACKET> vl = value() { insertstmt.attrvalues.add(vl); }
+    (<COMMA> vl = value() {insertstmt.attrvalues.add(vl); })*
+    <RIGHT_BRACKET> { return 2; }
+ }
+
+UpdateStmt update():
+{
+    String cln;
+	String value_s;
+	String attr_s;
+	String cond;
+	String update_s;
+	updatestmt = new UpdateStmt();
+}
+{
+  <UPDATE> { updatestmt.NodeTag="UPDATE"; }
+  cln = classname() { updatestmt.classname=cln; }
+   <SET > {return updatestmt;}
+   <SEMICOLON> {return updatestmt;}
+}
+
+UpdateStmt update2():
+{
+    String cln;
+	String value_s;
+	String attr_s;
+	String cond;
+	String update_s;
+	updatestmt = new UpdateStmt();
+}
+{
+  <UPDATE> { updatestmt.NodeTag="UPDATE"; }
+   cln = classname() { updatestmt.classname=cln; }
+   <SET>
+   attr_s = attr(){ updatestmt.attrs.add(attr_s); }
+  <EQUAL> 
+  value_s = value() { updatestmt.values.add(value_s); }
+  ( < COMMA >
+   attr_s = attr(){ updatestmt.attrs.add(attr_s); }
+  <EQUAL> 
+  value_s = value() { updatestmt.values.add(value_s); }
+  )*
+  <WHERE>
+  cond = condition() { updatestmt.whereclause=cond; }
+  <SEMICOLON> {return updatestmt;}
+}
+
+DeleteStmt delete():
+{
+  String cln;
+  String cond;
+  deletestmt=new DeleteStmt();
+}
+{
+  < DELETE > <FROM > cln = classname() { deletestmt.NodeTag="DELETE";deletestmt.classname=cln; }
+   < WHERE > cond=condition() { deletestmt.whereclause=cond; }< SEMICOLON > { return deletestmt; }
+}
+  
+
+ String classname() :
+{  Token s;}
+{
+   s=<ID>
+   { return s.image;}
+}
+
+ String attrtype() :
+{  Token s;}
+{
+   s=<ID>
+   { return s.image;}
+}
+
+String attr() :
+{  Token s;}
+{
+   s=<ID>
+   { return s.image;}
+}
+
+String value() :
+{
+	Token s;
+}
+{
+    s = <INT> {return s.image; }
+    |
+    s = <STRING> { return s.image; }
+}
+
+String condition() :
+{
+  Token s;
+}
+{
+  s=< BOOLEXP >
+  { return s.image; }
+}
+
+String expr() :
+{  Token s;}
+{
+   s=<EXPRESSION>
+   { return s.image;}
+}
+
+String expression() :
+{
+	String s;
+}
+{
+    s = expr() {return s;}
+    |
+    s = attr() {return s;}
+}
+
+
+int selectdeputy1():
+{
+    String cln;
+}
+{
+   <SELECTDEPUTY>
+    cln = classname() { createselstmt.classname=cln; }
+    selectdeputy() { return 0; }
+}
+
+int selectdeputy() :
+{
+	int count;
+	 String cln;
+     RelAttr rl=new RelAttr();
+     String attr_s;
+     String attrtype_s;
+}
+{
+   (
+     
+    <LEFT_BRACKET>
+    attr_s = attr() { rl=new RelAttr(); rl.attrname=attr_s; }
+    attrtype_s = attrtype() { rl.attrtype=attrtype_s; createselstmt.relattrs.add(rl); }
+    (<COMMA> attr_s = attr() { rl=new RelAttr(); rl.attrname=attr_s; } attrtype_s = attrtype() { rl.attrtype=attrtype_s; createselstmt.relattrs.add(rl); })*
+    <RIGHT_BRACKET>  <SELECT>  directselect() { return 0;}
+  )
+|
+(
+   <SELECT>  directselect() { return 0;}
+)
+}
+
+String dattr():
+{  Token s;}
+{
+   s=<ID>
+   { return s.image;}
+}
+
+void directselect() :
+{
+    String dattr_s;
+	String attr_s;
+	String expr_s;
+	String value_s = "";
+	DeputyAttr deputyattr;
+	boolean plus = false;
+	String cln;
+	String cond;
+	int count = 0;
+}
+{
+    expr_s = expression() { deputyattr=new DeputyAttr(); deputyattr.switchrule=expr_s;}
+    <AS>
+    dattr_s = dattr() {deputyattr.deputyname=dattr_s; createselstmt.deputyattrs.add(deputyattr);}
+    (<COMMA>  expr_s = expression() {deputyattr=new DeputyAttr(); deputyattr.switchrule=expr_s;}
+    <AS> dattr_s = dattr(){deputyattr.deputyname=dattr_s; createselstmt.deputyattrs.add(deputyattr);})*
+    <FROM>
+    cln = classname() {createselstmt.originname=cln; }
+    <WHERE>
+    cond = condition() {createselstmt.whereclause=cond; }
+}
+
+
+
+	
